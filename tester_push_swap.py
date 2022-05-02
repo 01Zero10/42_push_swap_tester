@@ -1,5 +1,5 @@
 #!/usr/local/bin/python3
-import math
+import sys
 import random
 import os
 import argparse
@@ -21,7 +21,6 @@ class Bcolors:
 def create_parser():
 	arg_parser = argparse.ArgumentParser(description='Push Swap Tester',
 										 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	arg_parser.add_argument('-b', '--bonus', action='store_true', default=False, help='Test the checker')
 	arg_parser.add_argument('-d', '--dir', type=str, default='../', help='Push_swap directory (not work with -g)')
 	arg_parser.add_argument('-e', '--extended_test', action='store_true', default=False,
 							help='Run test with range(min max) int')
@@ -32,40 +31,52 @@ def create_parser():
 	arg_parser.add_argument('-n', '--n_iter', type=int, default=10, help='Number of iteration for 100, 500 test')
 	arg_parser.add_argument('-v', '--verbose', action='store_true', default=False,
 							help='Print number list')
-	#arg_parser.add_argument('-s', '--save', action='store_true', default=False, help='Save number list for each iteration in number.txt')
-	#arg_parser.add_argument('-)
+	arg_parser.add_argument("--test", type=str, default="a", help="Select test (a = all, e = error, i = identity, s = simple, o = 100, f = 500)")
+	arg_parser.add_argument("--skip", action="store_true", default=False, help="Skip norminette and make")
 	
 	return arg_parser
 
+
+def check_test_arg(parser: argparse.ArgumentParser, test):
+	if test != "a" and test != "e" and test != "i" and test != "s" and test != "o" and test != "f":
+		parser.print_help()
+		sys.exit(1)
 
 def rd_nm(n: int, ext_test):
 	lst = []
 	while len(lst) != n:
 		if not ext_test:
-			x = str(random.randint(-50000, 50000))
+			x = random.randint(-50000, 50000)
 		else:
 			x = random.randint(-2147483648, 2147483647)
 		if x not in lst:
 			lst.append(x)
-	# for element in lst:
-	#	lst[lst.index(element)] = str(element)
 	return lst
 
 
 def create_str(lst: list):
 	random.shuffle(lst)
+	while True:
+		tmp = [element for element in lst]
+		tmp.sort()
+		if tmp != lst:
+			break
+		random.shuffle(lst)
+	for i in range(0, len(lst)):
+		lst[i] = str(lst[i])
 	b = " ".join(lst)
 	return b
 
 
-def control_checker(ck_res):
+def control_checker(ck_res: str):
 	if ck_res == "OK\n":
 		print(f"{Bcolors.OKGREEN}{ck_res}{Bcolors.ENDC}")
 	else:
 		print(f"{Bcolors.FAIL}{ck_res}{Bcolors.ENDC}")
 
 
-def point_control(n_ele, wc_out):
+def point_control(n_ele, wc_out: str):
+	wc_out = wc_out[:-1]
 	if int(n_ele) == 3:
 		if int(wc_out) == 2 or int(wc_out) == 3:
 			print(f"{Bcolors.OKGREEN}{wc_out}/3{Bcolors.ENDC}")
@@ -219,7 +230,8 @@ def simple_version(name, checker, arg):
 def test_push(arg):
 	name = "push_swap"
 	checker = 0
-	prepare()
+	if not arg.skip:
+		prepare()
 	if name not in os.listdir():
 		print(f"{Bcolors.FAIL}{Bcolors.BOLD}ERROR{Bcolors.ENDC}")
 		exit()
@@ -234,46 +246,46 @@ def test_push(arg):
 			checker = 1
 	else:
 		checker = 1
-	error_management(name)
-	identity_test(name)
-	simple_version(name, checker, arg)
-	print(f"{Bcolors.HEADER}{Bcolors.BOLD}Running Middle version test{Bcolors.ENDC}")
-	run_test(100, arg)
-	sleep(2)
-	print(f"{Bcolors.HEADER}{Bcolors.BOLD}Running Advanced version test{Bcolors.ENDC}")
-	run_test(500, arg)
-	sleep(2)
-
-
-'''	arg_parser = argparse.ArgumentParser(description='Push Swap Tester',
-										 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	arg_parser.add_argument('-v', '--verbose', action='count', default=0)
-	arg_parser.add_argument('-g', '--git_url', type=str, default='',
-							help='Take git_url and clone the repository, then run test')
-	arg_parser.add_argument('-e', '--extended_test', action='store_true', default=False,
-							help='Run test with range(min max) int')
-	arg_parser.add_argument('-s', '--stack_len', type=int,
-							help='run a single test with the given len', default=None)
-	arg_parser.add_argument('-b', '--bonus', action='store_true', default=False, help='Test the checker')
-	return arg_parser'''
+	if arg.test == "a" or arg.test == "e":
+		error_management(name)
+	if arg.test == "a" or arg.test == "i":
+		identity_test(name)
+	if arg.test == "a" or arg.test == "s":
+		simple_version(name, checker, arg)
+	if arg.test == "a" or arg.test == "o":
+		print(f"{Bcolors.HEADER}{Bcolors.BOLD}Running Middle version test{Bcolors.ENDC}")
+		run_test(100, arg)
+		sleep(2)
+	if arg.test == "a" or arg.test == "f":
+		print(f"{Bcolors.HEADER}{Bcolors.BOLD}Running Advanced version test{Bcolors.ENDC}")
+		run_test(500, arg)
+		sleep(2)
 
 
 def main():
-	arg = create_parser().parse_args()
+	parser = create_parser()
+	arg = parser.parse_args()
+	check_test_arg(parser, arg.test)
+	try:
+		control_checker(5)
+	except:
+		print("")
 	if arg.git_url:
 		arg.dir = ''
 		clone(arg.git_url)
 		if not arg.len:
 			test_push(arg)
 		else:
-			print('NOT IMPLEMENTED')
+			arg.n_iter = 1
+			run_test(arg.len, arg)
 	else:
 		if arg.dir:
 			os.chdir(arg.dir)
 		if not arg.len:
 			test_push(arg)
 		else:
-			print('NOT IMPLEMENTED')
+			arg.n_iter = 1
+			run_test(arg.len, arg)
 
 
 if __name__ == "__main__":
