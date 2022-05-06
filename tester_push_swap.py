@@ -1,10 +1,14 @@
 #!/usr/local/bin/python3
+from asyncio import subprocess
 import sys
 import random
 import os
 import argparse
 from time import sleep
+from subprocess import run
 
+
+_URL = "https://projects.intra.42.fr/uploads/document/document/8245/checker_Mac"
 
 class Bcolors:
 	HEADER = '\033[95m'
@@ -16,6 +20,16 @@ class Bcolors:
 	ENDC = '\033[0m'
 	BOLD = '\033[1m'
 	UNDERLINE = '\033[4m'
+
+
+def check_checker():
+	with open("checker_mac", "r") as ck:
+		try:
+			if ck.readline() == "<!DOCTYPE html>\n":
+				print(f"{Bcolors.HEADER}{Bcolors.BOLD}Check checker url{Bcolors.ENDC}")
+				return 0
+		except UnicodeDecodeError as e:
+			return 1
 
 
 def create_parser():
@@ -210,7 +224,7 @@ def simple_version(name, checker, arg):
 	while not checker:
 		input(f"{Bcolors.HEADER}{Bcolors.BOLD}Download the checker_Mac and press enter:{Bcolors.ENDC}")
 		if "checker_Mac" in os.listdir():
-			checker = 1
+			checker = control_checker()
 	print(f"{Bcolors.HEADER}{Bcolors.BOLD}Running Simple version test{Bcolors.ENDC}")
 	sleep(2)
 	print(f"{Bcolors.OKBLUE}{Bcolors.BOLD}Running ./push_swap 2 1 0 | ./checker_Mac 2 1 0{Bcolors.ENDC}", end="")
@@ -235,17 +249,12 @@ def test_push(arg):
 	if name not in os.listdir():
 		print(f"{Bcolors.FAIL}{Bcolors.BOLD}ERROR{Bcolors.ENDC}")
 		exit()
-	print(f"{Bcolors.HEADER}{Bcolors.BOLD}Download checker{Bcolors.ENDC}")
 	if "checker_Mac" not in os.listdir():
-		os.popen(
-			"curl https://projects.intra.42.fr/uploads/document/document/8245/checker_Mac -o checker_Mac && chmod +x "
-			"checker_Mac")
-		if "checker_Mac" not in os.listdir():
-			print(f"{Bcolors.FAIL}{Bcolors.BOLD}Unable to download checker_Mac{Bcolors.ENDC}")
-		else:
-			checker = 1
-	else:
-		checker = 1
+		print(f"{Bcolors.HEADER}{Bcolors.BOLD}Download checker{Bcolors.ENDC}")
+		run(
+			f"curl {_URL} -o checker_Mac && chmod +x "
+			"checker_Mac", shell=True)
+	checker = check_checker()
 	if arg.test == "a" or arg.test == "e":
 		error_management(name)
 	if arg.test == "a" or arg.test == "i":
