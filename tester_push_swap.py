@@ -35,18 +35,18 @@ def check_checker():
 def create_parser():
 	arg_parser = argparse.ArgumentParser(description='Push Swap Tester',
 										 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	arg_parser.add_argument('-d', '--dir', type=str, default='../', help='Push_swap directory (not work with -g)')
+	arg_parser.add_argument('-d', '--dir', type=str, default='../', help='specify the push_swap directory (not work with -g)')
 	arg_parser.add_argument('-e', '--extended_test', action='store_true', default=False,
-							help='Run test with range(min max) int')
+							help='run tests with a range (min int, max int)')
 	arg_parser.add_argument('-g', '--git_url', type=str, default='',
-							help='Take git_url and clone the repository, then run test')
+							help='takes your git_url and clones the repository and then runs the tests')
 	arg_parser.add_argument('-l', '--len', type=int,
 							help='run a single test with the given len', default=None)
-	arg_parser.add_argument('-n', '--n_iter', type=int, default=10, help='Number of iteration for 100, 500 test')
+	arg_parser.add_argument('-n', '--n_iter', type=int, default=10, help='specify the number of iterations to test the 100 and 500 sets')
 	arg_parser.add_argument('-v', '--verbose', action='store_true', default=False,
-							help='Print number list')
-	arg_parser.add_argument("--test", type=str, default="a", help="Select test (a = all, e = error, i = identity, s = simple, o = 100, f = 500)")
-	arg_parser.add_argument("--skip", action="store_true", default=False, help="Skip norminette and make")
+							help='print the list of numbers used for the test')
+	arg_parser.add_argument("--test", type=str, default="a", help="allows you to do a specific test (a = all, e = error, i = identity, s = simple, o = 100, f = 500)")
+	arg_parser.add_argument("--skip", action="store_true", default=False, help="skip the norme and Makefile")
 	
 	return arg_parser
 
